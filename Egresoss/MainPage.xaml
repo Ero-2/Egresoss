@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:Egresoss.ViewModels"
+             xmlns:models="clr-namespace:Egresoss.Models"
+             xmlns:converters="clr-namespace:Egresoss.Converters"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:DataType="viewmodel:MainViewModel"
+             x:Class="Egresoss.MainPage"
+             Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <converters:BoolToColorConverter x:Key="IncomeColorConverter"
+                                     TrueColor="#4CAF50"
+                                     FalseColor="#F44336"/>
+        <converters:NullToBoolConverter x:Key="NullBoolConverter"/>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *" Padding="20">
+
+        <!-- CABECERA -->
+        <VerticalStackLayout Grid.Row="0" Spacing="12">
+
+            <!-- Tarjeta Saldo Total -->
+            <Frame BackgroundColor="#6C63FF" HasShadow="True" HeightRequest="120">
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Saldo Total"
+                           TextColor="White" Opacity="0.8"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding TotalBalance, StringFormat='${0:N2}'}"
+                           TextColor="White" FontSize="32"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- GRÁFICA NATIVA: Ingresos vs Gastos -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Ingresos vs Gastos"
+               FontAttributes="Bold"
+               FontSize="14"
+               HorizontalOptions="Center"
+               TextColor="#444"/>
+
+                    <!-- Barra Ingresos -->
+                    <Grid ColumnDefinitions="80, *, 80" HeightRequest="36">
+                        <Label Grid.Column="0"
+                   Text="Ingresos"
+                   VerticalOptions="Center"
+                   FontSize="12"
+                   TextColor="#4CAF50"
+                   FontAttributes="Bold"/>
+                        <Frame Grid.Column="1"
+                   BackgroundColor="#E8F5E9"
+                   CornerRadius="8"
+                   Padding="0"
+                   HasShadow="False"
+                   VerticalOptions="Center"
+                   HeightRequest="22">
+                            <BoxView BackgroundColor="#4CAF50"
+                         CornerRadius="8"
+                         HorizontalOptions="Start"
+                         VerticalOptions="Fill"
+                         WidthRequest="{Binding IncomeBarWidth}"/>
+                        </Frame>
+                        <Label Grid.Column="2"
+                   Text="{Binding TotalIncome, StringFormat='${0:N0}'}"
+                   VerticalOptions="Center"
+                   HorizontalOptions="End"
+                   FontSize="12"
+                   TextColor="#4CAF50"
+                   FontAttributes="Bold"/>
+                    </Grid>
+
+                    <!-- Barra Gastos -->
+                    <Grid ColumnDefinitions="80, *, 80" HeightRequest="36">
+                        <Label Grid.Column="0"
+                   Text="Gastos"
+                   VerticalOptions="Center"
+                   FontSize="12"
+                   TextColor="#F44336"
+                   FontAttributes="Bold"/>
+                        <Frame Grid.Column="1"
+                   BackgroundColor="#FFEBEE"
+                   CornerRadius="8"
+                   Padding="0"
+                   HasShadow="False"
+                   VerticalOptions="Center"
+                   HeightRequest="22">
+                            <BoxView BackgroundColor="#F44336"
+                         CornerRadius="8"
+                         HorizontalOptions="Start"
+                         VerticalOptions="Fill"
+                         WidthRequest="{Binding ExpenseBarWidth}"/>
+                        </Frame>
+                        <Label Grid.Column="2"
+                   Text="{Binding TotalExpense, StringFormat='${0:N0}'}"
+                   VerticalOptions="Center"
+                   HorizontalOptions="End"
+                   FontSize="12"
+                   TextColor="#F44336"
+                   FontAttributes="Bold"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Frame>
+            <!-- 👆 FIN GRÁFICA -->
+
+            <Label Text="Transacciones Recientes"
+                   FontAttributes="Bold"
+                   FontSize="18"
+                   Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+
+        <!-- LISTA DE TRANSACCIONES -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding RecentTransactions}"
+                        EmptyView="No hay movimientos aún"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Transaction">
+                    <Frame Margin="0,5" Padding="10"
+                           BackgroundColor="White"
+                           HasShadow="False"
+                           CornerRadius="8"
+                           BorderColor="#F0F0F0">
+                        <Grid ColumnDefinitions="5, *, Auto">
+                            <BoxView Grid.Column="0" WidthRequest="5"
+                                     BackgroundColor="{Binding IsIncome, Converter={StaticResource IncomeColorConverter}}"
+                                     CornerRadius="2"/>
+                            <StackLayout Grid.Column="1" Margin="15,0">
+                                <Label Text="{Binding Category}"
+                                       FontAttributes="Bold"
+                                       TextColor="Black"
+                                       FontSize="16"/>
+                                <Label Text="{Binding Date, StringFormat='{0:dd/MM/yyyy}'}"
+                                       FontSize="12"
+                                       Opacity="0.6"
+                                       TextColor="Gray"/>
+                            </StackLayout>
+                            <Label Grid.Column="2"
+                                   Text="{Binding Amount, StringFormat='{0:C}'}"
+                                   TextColor="{Binding IsIncome, Converter={StaticResource IncomeColorConverter}}"
+                                   VerticalOptions="Center"
+                                   FontAttributes="Bold"
+                                   FontSize="16"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- BOTÓN + -->
+        <Button Grid.Row="1"
+                Text="+"
+                Clicked="OnAddTransactionClicked"
+                BackgroundColor="#6C63FF"
+                TextColor="White"
+                FontSize="30"
+                WidthRequest="65"
+                HeightRequest="65"
+                CornerRadius="32"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="0,0,10,10"
+                Shadow="{Shadow Brush=Black, Offset='0,5', Opacity=0.3}"/>
+    </Grid>
+</ContentPage>

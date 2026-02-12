@@ -1,0 +1,26 @@
+﻿<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:conv="clr-namespace:Egresoss.Converters"
+             x:Class="Egresoss.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Color x:Key="Primary">#6C63FF</Color>
+            <Color x:Key="IncomeGreen">#4ECDC4</Color>
+            <Color x:Key="ExpenseRed">#FF6B6B</Color>
+            <Color x:Key="DisabledGray">#BDC3C7</Color>
+
+            <conv:BoolToColorConverter x:Key="IncomeColorConverter" 
+                                       TrueColor="{StaticResource IncomeGreen}" 
+                                       FalseColor="{StaticResource DisabledGray}" />
+
+            <conv:BoolToColorConverter x:Key="InverseIncomeColorConverter" 
+                                       TrueColor="{StaticResource DisabledGray}" 
+                                       FalseColor="{StaticResource ExpenseRed}" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

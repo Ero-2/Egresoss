@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:Egresoss.ViewModels"
+             x:DataType="viewmodel:TransactionViewModel"
+             x:Class="Egresoss.NewTransactionPage"
+             Title="{Binding Title}">
+
+	<VerticalStackLayout Padding="20" Spacing="15">
+
+		<HorizontalStackLayout HorizontalOptions="Center" Spacing="15">
+			<Button Text="Gasto"
+                    Command="{Binding SetTypeCommand}"
+                    CommandParameter="expense"
+                    BackgroundColor="{Binding IsIncome, Converter={StaticResource InverseIncomeColorConverter}}"
+                    TextColor="White"
+                    WidthRequest="120" />
+
+			<Button Text="Ingreso"
+                    Command="{Binding SetTypeCommand}"
+                    CommandParameter="income"
+                    BackgroundColor="{Binding IsIncome, Converter={StaticResource IncomeColorConverter}}"
+                    TextColor="White"
+                    WidthRequest="120" />
+		</HorizontalStackLayout>
+
+		<Frame BorderColor="#6C63FF" Padding="5">
+			<Entry Text="{Binding AmountText}"
+                   Placeholder="0.00 (ej: 100+50)"
+                   Keyboard="Numeric"
+                   FontSize="32"
+                   HorizontalTextAlignment="Center" />
+		</Frame>
+
+		<Label Text="Categoria" FontAttributes="Bold" />
+		<Picker Title="Selecciona una opcion"
+                ItemsSource="{Binding CategoriesList}"
+                SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" />
+
+		<Label Text="Fecha" FontAttributes="Bold" />
+		<DatePicker Date="{Binding SelectedDate, Mode=TwoWay}" />
+
+		<Button Text="GUARDAR"
+                Command="{Binding SaveTransactionCommand}"
+                BackgroundColor="#6C63FF"
+                TextColor="White"
+                FontAttributes="Bold"
+                HeightRequest="50"
+                CornerRadius="10"
+                Margin="0,20,0,0"/>
+
+	</VerticalStackLayout>
+</ContentPage>
