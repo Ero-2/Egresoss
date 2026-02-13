@@ -13,6 +13,9 @@ public partial class MainViewModel : BaseViewModel
     public ObservableCollection<Transaction> RecentTransactions { get; } = new();
     public ObservableCollection<ExpenseByCategory> ExpensesByCategory { get; } = new();
 
+    // ✅ NUEVA: Colección para ingresos por categoría
+    [ObservableProperty] private ObservableCollection<ExpenseByCategory> incomeByCategory = new();
+
     [ObservableProperty] private decimal totalBalance;
     [ObservableProperty] private decimal totalIncome;
     [ObservableProperty] private decimal totalExpense;
@@ -64,7 +67,28 @@ public partial class MainViewModel : BaseViewModel
             ExpensesByCategory.Add(g);
         }
 
-        // --- Construir barras proporcionales (CORREGIDO) ---
+        // ✅ NUEVO: Calcular ingresos por categoría
+        var incomeTx = transactions.Where(t => t.IsIncome);
+        var incomeGrouped = incomeTx
+            .GroupBy(t => t.Category ?? "Otros Ingresos")
+            .Select(g => new ExpenseByCategory
+            {
+                Category = g.Key,
+                Amount = g.Sum(x => x.Amount)
+            })
+            .OrderByDescending(x => x.Amount)
+            .ToList();
+
+        decimal totalIncomeAmount = incomeGrouped.Sum(g => g.Amount);
+
+        incomeByCategory.Clear();
+        foreach (var g in incomeGrouped)
+        {
+            g.Percentage = totalIncomeAmount > 0 ? (double)(g.Amount / totalIncomeAmount) : 0;
+            incomeByCategory.Add(g);
+        }
+
+        // --- Construir barras proporcionales ---
         BuildBars(transactions);
 
         IsBusy = false;
@@ -72,11 +96,9 @@ public partial class MainViewModel : BaseViewModel
 
     private void BuildBars(List<Transaction> transactions)
     {
-        // ✅ CORREGIDO: Usar las propiedades observables, no campos privados
         TotalIncome = transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
         TotalExpense = transactions.Where(t => !t.IsIncome).Sum(t => t.Amount);
 
-        // El mayor siempre llega a 1.0, el menor es proporcional
         double max = (double)Math.Max(TotalIncome, TotalExpense);
 
         IncomeProgress = max > 0 ? (double)TotalIncome / max : 0;
