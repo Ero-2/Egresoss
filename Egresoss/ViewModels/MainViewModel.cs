@@ -2,8 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Egresoss.Models;
 using Egresoss.Services;
-using Microcharts;
-using SkiaSharp;
 using System.Collections.ObjectModel;
 
 namespace Egresoss.ViewModels;
@@ -15,18 +13,11 @@ public partial class MainViewModel : BaseViewModel
     public ObservableCollection<Transaction> RecentTransactions { get; } = new();
     public ObservableCollection<ExpenseByCategory> ExpensesByCategory { get; } = new();
 
-    [ObservableProperty]
-    private decimal totalBalance;
-
-    [ObservableProperty]
-    private Chart summaryChart; // 👈 AGREGADO
-
-    // Paleta de colores para la gráfica
-    private readonly string[] _chartColors = new[]
-    {
-        "#6C63FF", "#F44336", "#FF9800", "#4CAF50",
-        "#2196F3", "#9C27B0", "#00BCD4", "#FF5722"
-    };
+    [ObservableProperty] private decimal totalBalance;
+    [ObservableProperty] private decimal totalIncome;
+    [ObservableProperty] private decimal totalExpense;
+    [ObservableProperty] private double incomeProgress;
+    [ObservableProperty] private double expenseProgress;
 
     public MainViewModel(DatabaseService dbService)
     {
@@ -39,7 +30,7 @@ public partial class MainViewModel : BaseViewModel
     {
         IsBusy = true;
 
-        var transactions = await _dbService.GetTransactionsAsync();
+        var transactions = (await _dbService.GetTransactionsAsync()).ToList();
 
         RecentTransactions.Clear();
         decimal balance = 0;
@@ -73,55 +64,22 @@ public partial class MainViewModel : BaseViewModel
             ExpensesByCategory.Add(g);
         }
 
-        // --- Construir gráfica ---  👈 AGREGADO
-        BuildChart(transactions.ToList());
+        // --- Construir barras proporcionales (CORREGIDO) ---
+        BuildBars(transactions);
 
         IsBusy = false;
     }
 
-    private void BuildChart(List<Transaction> transactions) // 👈 AGREGADO
+    private void BuildBars(List<Transaction> transactions)
     {
-        var totalIncome = transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
-        var totalExpense = transactions.Where(t => !t.IsIncome).Sum(t => t.Amount);
+        // ✅ CORREGIDO: Usar las propiedades observables, no campos privados
+        TotalIncome = transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
+        TotalExpense = transactions.Where(t => !t.IsIncome).Sum(t => t.Amount);
 
-        // Si no hay datos, no construimos la gráfica
-        if (totalIncome == 0 && totalExpense == 0)
-        {
-            summaryChart = null;
-            return;
-        }
+        // El mayor siempre llega a 1.0, el menor es proporcional
+        double max = (double)Math.Max(TotalIncome, TotalExpense);
 
-        var entries = new List<ChartEntry>();
-
-        if (totalIncome > 0)
-        {
-            entries.Add(new ChartEntry((float)totalIncome)
-            {
-                Label = "Ingresos",
-                ValueLabel = $"${totalIncome:N0}",
-                Color = SKColor.Parse("#4CAF50"),
-                ValueLabelColor = SKColor.Parse("#4CAF50")
-            });
-        }
-
-        if (totalExpense > 0)
-        {
-            entries.Add(new ChartEntry((float)totalExpense)
-            {
-                Label = "Gastos",
-                ValueLabel = $"${totalExpense:N0}",
-                Color = SKColor.Parse("#F44336"),
-                ValueLabelColor = SKColor.Parse("#F44336")
-            });
-        }
-
-        summaryChart = new DonutChart
-        {
-            Entries = entries,
-            LabelTextSize = 28,
-            BackgroundColor = SKColors.Transparent,
-            HoleRadius = 0.5f,
-            LabelMode = LabelMode.RightOnly
-        };
+        IncomeProgress = max > 0 ? (double)TotalIncome / max : 0;
+        ExpenseProgress = max > 0 ? (double)TotalExpense / max : 0;
     }
 }
